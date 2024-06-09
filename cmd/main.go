@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/gopark/config"
-	"github.com/gopark/pkg/hello"
+	"gopark/config"
+	"gopark/pkg/hello"
 )
 
 func main() {
