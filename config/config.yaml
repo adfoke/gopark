@@ -1,0 +1,3 @@
+appname: TestGo
+port: 8080
+debug: true
