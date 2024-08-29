@@ -9,6 +9,7 @@ type Config struct {
     AppName string
     Port    int
     Debug   bool
+    Redis string
 }
 
 var AppConfig Config
@@ -35,5 +36,6 @@ func init() {
         "app_name": AppConfig.AppName,
         "port":     AppConfig.Port,
         "debug":    AppConfig.Debug,
+        "redis":    AppConfig.Redis,
     }).Infof("Config initialized")
 }

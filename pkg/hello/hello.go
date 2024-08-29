@@ -1,8 +1,5 @@
 package hello
 
-import "fmt"
-
-func SayHello() {
-	fmt.Println("Hello, world from the hello package!")
-
+func SayHello() string{
+	return "Hello, from the hello package!"
 }
