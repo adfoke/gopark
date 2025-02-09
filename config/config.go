@@ -15,7 +15,7 @@ type Config struct {
 var AppConfig Config
 var log = logrus.New()
 
-func init() {
+func Init() {
 	// 配置 logrus
     log.SetFormatter(&logrus.TextFormatter{
         FullTimestamp: true,

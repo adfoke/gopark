@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"gopark/pkg/hello"
+	"gopark/config"
 	"github.com/sirupsen/logrus"
 )
 
@@ -17,6 +18,8 @@ var log = logrus.New()
 
 
 func main() {
+	//初始化config
+	config.Init()
 	// 初始化一个 User 结构体
 	user := User{
 		ID:   1,
