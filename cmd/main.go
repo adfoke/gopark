@@ -1,61 +1,37 @@
 package main
 
 import (
+	"encoding/json"
+	"gopark/pkg/hello"
 	"github.com/sirupsen/logrus"
-	"github.com/redis/go-redis/v9"
-	"context"
-	"encoding/json"	
 )
 
 // 定义一个 User 结构体
 type User struct {
 	ID   uint `json:"id"`
 	Name string `json:"name"`
-	Age  int `json:"age"`
+	Mail  string `json:"mail"`
 }
 
 var log = logrus.New()
 
 
-// Initialize Redis client
-func initRedisClient() *redis.Client {
-	client := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379", // Redis address
-		DB:   0,                // use default DB
-	})
-	return client
-}
-
-// Fetch user information from Redis
-func getUserFromRedis(client *redis.Client, userID string) (*User, error) {
-	var ctx = context.Background()
-	val, err := client.Get(ctx, userID).Result()
-	if err != nil {
-		return nil, err
-	}
-
-	var user User
-	err = json.Unmarshal([]byte(val), &user)
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
-}
-
 func main() {
-	log.SetFormatter(&logrus.TextFormatter{
-        FullTimestamp: true,
-    })
-
-	client := initRedisClient()
-	userID := "user:1"
-
-	user, err := getUserFromRedis(client, userID)
+	// 初始化一个 User 结构体
+	user := User{
+		ID:   1,
+		Name: "test",
+		Mail:  "test@gmail.com",
+	}
+	// 使用 json.Marshal() 方法将 User 结构体转换为 JSON 格式的数据
+	data, err := json.Marshal(user)
 	if err != nil {
-		log.Error(err)
-	} 
+		log.Fatal(err)
+	}
+	// 打印 JSON 格式的数据
+	log.Info(string(data))
+	//引用hello包
+	log.Info(hello.SayHello())
 
-	log.Info("User information: ", *user)
 
 }
