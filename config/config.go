@@ -1,41 +1,37 @@
 package config
 
 import (
-    "github.com/sirupsen/logrus"
-    "github.com/spf13/viper"
+	"fmt"
+	"github.com/spf13/viper"
 )
 
+// Config 结构体定义了应用的配置项
 type Config struct {
-    AppName string
-    Port    int
-    Debug   bool
-    Redis string
+	AppName string `mapstructure:"appname"` // Use mapstructure tags for Viper
+	Port    int    `mapstructure:"port"`
+	Debug   bool   `mapstructure:"debug"`
+	Redis   string `mapstructure:"redis"`
 }
 
-var AppConfig Config
-var log = logrus.New()
+// LoadConfig 加载配置文件并返回 Config 结构体
+func LoadConfig(path string) (config Config, err error) {
+	viper.SetConfigName("config") // 配置文件名称（不包含扩展名）
+	viper.SetConfigType("yaml")   // 配置文件类型
+	viper.AddConfigPath(path)     // 使用传入的路径
 
-func Init() {
-	// 配置 logrus
-    log.SetFormatter(&logrus.TextFormatter{
-        FullTimestamp: true,
-    })
-    viper.SetConfigName("config") // 配置文件名称（不包含扩展名）
-    viper.SetConfigType("yaml")   // 配置文件类型
-    viper.AddConfigPath("config") // 配置文件路径
+	viper.AutomaticEnv() // 读取环境变量
 
-    if err := viper.ReadInConfig(); err != nil {
-        log.Fatalf("Error reading config file: %s", err)
-    }
+	err = viper.ReadInConfig()
+	if err != nil {
+		return Config{}, fmt.Errorf("error reading config file: %w", err)
+	}
 
-    if err := viper.Unmarshal(&AppConfig); err != nil {
-        log.Fatalf("Unable to decode into struct: %s", err)
-    }
+	err = viper.Unmarshal(&config)
+	if err != nil {
+		return Config{}, fmt.Errorf("unable to decode config into struct: %w", err)
+	}
 
-    log.WithFields(logrus.Fields{
-        "app_name": AppConfig.AppName,
-        "port":     AppConfig.Port,
-        "debug":    AppConfig.Debug,
-        "redis":    AppConfig.Redis,
-    }).Infof("Config initialized")
+	// 可选：在这里添加配置验证逻辑
+
+	return config, nil
 }
