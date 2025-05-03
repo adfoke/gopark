@@ -11,6 +11,13 @@ type Config struct {
 	Port    int    `mapstructure:"port"`
 	Debug   bool   `mapstructure:"debug"`
 	Redis   string `mapstructure:"redis"`
+	Database struct {
+		Host     string `mapstructure:"host"`
+		Port     int    `mapstructure:"port"`
+		User     string `mapstructure:"user"`
+		Password string `mapstructure:"password"`
+		Name     string `mapstructure:"name"`
+	} `mapstructure:"database"`
 }
 
 // LoadConfig 加载配置文件并返回 Config 结构体

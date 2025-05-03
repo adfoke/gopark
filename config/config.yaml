@@ -2,3 +2,9 @@ appname: TestGo_from_yaml
 port: 8080
 debug: true
 redis: localhost:6379
+database:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: password
+  name: test

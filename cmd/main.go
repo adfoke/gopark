@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"gopark/config"
+	"gopark/internal/db"     // Import database package
 	"gopark/internal/routes" // Import routes package
 	"gopark/internal/server" // Import server package (will be created next)
 	"os"
@@ -55,10 +56,17 @@ func main() {
 	}))
 	r.Use(gin.Recovery()) // 添加 Recovery 中间件
 
-	// 4. 注册路由
-	routes.SetupRoutes(r, log) // Pass logger to routes
+	// 4. 初始化数据库连接
+	dbConn, err := db.NewDB(cfg, log)
+	if err != nil {
+		log.Fatalf("Failed to initialize database connection: %v", err)
+	}
+	defer dbConn.Close()
 
-	// 5. 创建并启动服务器
+	// 5. 注册路由
+	routes.SetupRoutes(r, log, dbConn) // Pass logger and database connection to routes
+
+	// 6. 创建并启动服务器
 	srv := server.NewServer(r, cfg.Port, log)
 	log.Infof("Starting server on port %d", cfg.Port)
 	if err := srv.Run(); err != nil {
