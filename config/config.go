@@ -2,21 +2,19 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/spf13/viper"
 )
 
 // Config 结构体定义了应用的配置项
 type Config struct {
-	AppName string `mapstructure:"appname"` // Use mapstructure tags for Viper
-	Port    int    `mapstructure:"port"`
-	Debug   bool   `mapstructure:"debug"`
-	Redis   string `mapstructure:"redis"`
+	AppName  string `mapstructure:"appname"` // Use mapstructure tags for Viper
+	Port     int    `mapstructure:"port"`
+	Debug    bool   `mapstructure:"debug"`
+	Redis    string `mapstructure:"redis"`
 	Database struct {
-		Host     string `mapstructure:"host"`
-		Port     int    `mapstructure:"port"`
-		User     string `mapstructure:"user"`
-		Password string `mapstructure:"password"`
-		Name     string `mapstructure:"name"`
+		Type string `mapstructure:"type"` // 数据库类型: sqlite
+		Path string `mapstructure:"path"` // SQLite数据库文件路径
 	} `mapstructure:"database"`
 }
 
@@ -38,7 +36,13 @@ func LoadConfig(path string) (config Config, err error) {
 		return Config{}, fmt.Errorf("unable to decode config into struct: %w", err)
 	}
 
-	// 可选：在这里添加配置验证逻辑
+	// 设置默认值
+	if config.Database.Type == "" {
+		config.Database.Type = "sqlite"
+	}
+	if config.Database.Path == "" {
+		config.Database.Path = "./gopark.db"
+	}
 
 	return config, nil
 }

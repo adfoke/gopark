@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"gopark/config"
 	"gopark/internal/db"     // Import database package
 	"gopark/internal/routes" // Import routes package
 	"gopark/internal/server" // Import server package (will be created next)
 	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -62,6 +64,13 @@ func main() {
 		log.Fatalf("Failed to initialize database connection: %v", err)
 	}
 	defer dbConn.Close()
+
+	// 运行数据库迁移
+	migrationManager := db.NewMigrationManager(dbConn, log)
+	if err := migrationManager.RunMigrations(context.Background(), "internal/migrations"); err != nil {
+		log.Fatalf("Failed to run database migrations: %v", err)
+	}
+	log.Info("Database migrations completed successfully")
 
 	// 5. 注册路由
 	routes.SetupRoutes(r, log, dbConn) // Pass logger and database connection to routes

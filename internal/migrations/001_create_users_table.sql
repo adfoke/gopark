@@ -1,12 +1,11 @@
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    mail VARCHAR(255) NOT NULL UNIQUE
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    mail TEXT NOT NULL UNIQUE
 );
 
 -- Insert sample data
-INSERT INTO users (name, mail) VALUES
+INSERT OR IGNORE INTO users (name, mail) VALUES
     ('Test User 1', 'test1@example.com'),
-    ('Test User 2', 'test2@example.com')
-ON CONFLICT (mail) DO NOTHING;
+    ('Test User 2', 'test2@example.com');
