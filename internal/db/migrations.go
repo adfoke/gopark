@@ -10,13 +10,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// MigrationManager 处理数据库迁移
+// MigrationManager handles database migrations
 type MigrationManager struct {
 	DB  *DB
 	Log *logrus.Logger
 }
 
-// NewMigrationManager 创建一个新的迁移管理器
+// NewMigrationManager creates a new migration manager
 func NewMigrationManager(db *DB, log *logrus.Logger) *MigrationManager {
 	return &MigrationManager{
 		DB:  db,
@@ -24,7 +24,7 @@ func NewMigrationManager(db *DB, log *logrus.Logger) *MigrationManager {
 	}
 }
 
-// ensureMigrationsTable 确保迁移表存在
+// ensureMigrationsTable ensures the migrations table exists
 func (m *MigrationManager) ensureMigrationsTable(ctx context.Context) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -40,7 +40,7 @@ func (m *MigrationManager) ensureMigrationsTable(ctx context.Context) error {
 	return nil
 }
 
-// getAppliedMigrations 获取已应用的迁移列表
+// getAppliedMigrations returns the applied migration set
 func (m *MigrationManager) getAppliedMigrations(ctx context.Context) (map[string]bool, error) {
 	query := `SELECT version FROM schema_migrations;`
 	rows, err := m.DB.QueryContext(ctx, query)
@@ -63,7 +63,7 @@ func (m *MigrationManager) getAppliedMigrations(ctx context.Context) (map[string
 	return applied, nil
 }
 
-// recordMigration 记录已应用的迁移
+// recordMigration records an applied migration
 func (m *MigrationManager) recordMigration(ctx context.Context, version string) error {
 	query := `INSERT INTO schema_migrations (version) VALUES (?);`
 	_, err := m.DB.ExecContext(ctx, query, version)
@@ -74,27 +74,27 @@ func (m *MigrationManager) recordMigration(ctx context.Context, version string) 
 	return nil
 }
 
-// RunMigrations 运行所有未应用的迁移
+// RunMigrations applies all pending migrations
 func (m *MigrationManager) RunMigrations(ctx context.Context, migrationsDir string) error {
-	// 确保迁移表存在
+	// Ensure the migrations table exists
 	if err := m.ensureMigrationsTable(ctx); err != nil {
 		return err
 	}
 
-	// 获取已应用的迁移
+	// Fetch applied migrations
 	applied, err := m.getAppliedMigrations(ctx)
 	if err != nil {
 		return err
 	}
 
-	// 读取迁移文件
+	// Read migration files
 	files, err := os.ReadDir(migrationsDir)
 	if err != nil {
 		m.Log.Errorf("Failed to read migrations directory: %v", err)
 		return err
 	}
 
-	// 过滤并排序SQL文件
+	// Filter and sort SQL files
 	var migrations []string
 	for _, file := range files {
 		if !file.IsDir() && strings.HasSuffix(file.Name(), ".sql") {
@@ -103,18 +103,18 @@ func (m *MigrationManager) RunMigrations(ctx context.Context, migrationsDir stri
 	}
 	sort.Strings(migrations)
 
-	// 应用迁移
+	// Apply migrations
 	for _, migration := range migrations {
-		// 提取版本号（文件名前缀）
+		// Extract the version (filename prefix)
 		version := strings.TrimSuffix(migration, filepath.Ext(migration))
 
-		// 检查是否已应用
+		// Skip already applied migrations
 		if applied[version] {
 			m.Log.Infof("Migration %s already applied, skipping", version)
 			continue
 		}
 
-		// 读取迁移文件
+		// Load the migration file
 		path := filepath.Join(migrationsDir, migration)
 		content, err := os.ReadFile(path)
 		if err != nil {
@@ -122,8 +122,8 @@ func (m *MigrationManager) RunMigrations(ctx context.Context, migrationsDir stri
 			return err
 		}
 
-		// SQLite不支持事务中的DDL语句，所以我们不使用事务
-		// 执行迁移
+		// SQLite does not support DDL within transactions; run directly
+		// Execute migration
 		m.Log.Infof("Applying migration %s", version)
 		_, err = m.DB.ExecContext(ctx, string(content))
 		if err != nil {
@@ -131,7 +131,7 @@ func (m *MigrationManager) RunMigrations(ctx context.Context, migrationsDir stri
 			return err
 		}
 
-		// 记录迁移
+		// Record the applied migration
 		if err := m.recordMigration(ctx, version); err != nil {
 			return err
 		}

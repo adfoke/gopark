@@ -14,21 +14,21 @@ import (
 )
 
 func main() {
-	// 1. 初始化日志
+	// Initialize logger
 	log := logrus.New()
 	log.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
 	})
-	log.SetOutput(os.Stdout) // 输出到标准输出
-	// log.SetLevel(logrus.InfoLevel) // 默认 InfoLevel
+	log.SetOutput(os.Stdout)
+	// log.SetLevel(logrus.InfoLevel)
 
-	// 2. 加载配置
+	// Load configuration
 	cfg, err := config.LoadConfig("config") // Load from ./config directory
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// 根据配置设置日志级别
+	// Configure logging based on debug flag
 	if cfg.Debug {
 		log.SetLevel(logrus.DebugLevel)
 		gin.SetMode(gin.DebugMode)
@@ -40,10 +40,10 @@ func main() {
 
 	log.Infof("Configuration loaded: AppName=%s, Port=%d", cfg.AppName, cfg.Port)
 
-	// 3. 创建 Gin 引擎
+	// Create Gin engine
 	r := gin.New() // Use gin.New() for more control over middleware
 	r.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		// 自定义日志格式
+		// Custom log format
 		return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
 			param.ClientIP,
 			param.TimeStamp.Format("2006/01/02 - 15:04:05"),
@@ -56,26 +56,26 @@ func main() {
 			param.ErrorMessage,
 		)
 	}))
-	r.Use(gin.Recovery()) // 添加 Recovery 中间件
+	r.Use(gin.Recovery())
 
-	// 4. 初始化数据库连接
+	// Initialize database connection
 	dbConn, err := db.NewDB(cfg, log)
 	if err != nil {
 		log.Fatalf("Failed to initialize database connection: %v", err)
 	}
 	defer dbConn.Close()
 
-	// 运行数据库迁移
+	// Run database migrations
 	migrationManager := db.NewMigrationManager(dbConn, log)
 	if err := migrationManager.RunMigrations(context.Background(), "internal/migrations"); err != nil {
 		log.Fatalf("Failed to run database migrations: %v", err)
 	}
 	log.Info("Database migrations completed successfully")
 
-	// 5. 注册路由
-	routes.SetupRoutes(r, log, dbConn) // Pass logger and database connection to routes
+	// Register routes
+	routes.SetupRoutes(r, log, dbConn)
 
-	// 6. 创建并启动服务器
+	// Create and start server
 	srv := server.NewServer(r, cfg.Port, log)
 	log.Infof("Starting server on port %d", cfg.Port)
 	if err := srv.Run(); err != nil {

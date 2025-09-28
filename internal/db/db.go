@@ -20,7 +20,7 @@ type DB struct {
 
 // NewDB initializes a new database connection
 func NewDB(cfg config.Config, log *logrus.Logger) (*DB, error) {
-	// 确保数据库文件所在目录存在
+	// Ensure the database directory exists
 	dbDir := filepath.Dir(cfg.Database.Path)
 	if dbDir != "." && dbDir != ".." {
 		if err := os.MkdirAll(dbDir, 0755); err != nil {
@@ -28,20 +28,20 @@ func NewDB(cfg config.Config, log *logrus.Logger) (*DB, error) {
 		}
 	}
 
-	// 连接SQLite数据库
+	// Open the SQLite database
 	sqlDB, err := sql.Open("sqlite3", cfg.Database.Path)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open database: %w", err)
 	}
 
-	// 测试连接
+	// Verify the connection
 	if err := sqlDB.Ping(); err != nil {
 		sqlDB.Close()
 		return nil, fmt.Errorf("unable to connect to database: %w", err)
 	}
 
-	// 设置连接池参数
-	sqlDB.SetMaxOpenConns(25) // SQLite支持的并发连接有限
+	// Configure the connection pool
+	sqlDB.SetMaxOpenConns(25) // SQLite allows limited concurrent connections
 	sqlDB.SetMaxIdleConns(5)
 
 	db := &DB{

@@ -1,11 +1,11 @@
 package docs
 
-// 这个文件是为了让 swag 工具能够找到并生成 Swagger 文档
-// 实际使用时，需要安装 swag 工具并运行 swag init 命令生成文档
+// This file allows the swag tool to discover and generate Swagger docs
+// Install swag and run `swag init` when regenerating documentation
 
 // @title           GoPark API
 // @version         1.0
-// @description     GoPark 服务API文档
+// @description     GoPark service API documentation
 // @termsOfService  http://swagger.io/terms/
 
 // @contact.name   API Support

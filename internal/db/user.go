@@ -16,7 +16,7 @@ func (db *DB) CreateUser(ctx context.Context, user *models.User) error {
 		return err
 	}
 
-	// 获取自增ID
+	// Retrieve auto-incremented ID
 	id, err := result.LastInsertId()
 	if err != nil {
 		db.Log.Errorf("Failed to get last insert ID: %v", err)
@@ -53,7 +53,7 @@ func (db *DB) UpdateUser(ctx context.Context, user *models.User) error {
 		return err
 	}
 
-	// 检查是否有行被更新
+	// Verify that a row was updated
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		db.Log.Errorf("Failed to get rows affected: %v", err)
@@ -78,7 +78,7 @@ func (db *DB) DeleteUser(ctx context.Context, id uint) error {
 		return err
 	}
 
-	// 检查是否有行被删除
+	// Verify that a row was deleted
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		db.Log.Errorf("Failed to get rows affected: %v", err)
@@ -96,7 +96,7 @@ func (db *DB) DeleteUser(ctx context.Context, id uint) error {
 
 // SearchUsersByName searches for users by name pattern
 func (db *DB) SearchUsersByName(ctx context.Context, namePattern string) ([]*models.User, error) {
-	// SQLite使用LIKE而不是ILIKE，但可以使用COLLATE NOCASE实现不区分大小写
+	// SQLite uses LIKE instead of ILIKE; apply COLLATE NOCASE for case-insensitive matching
 	query := "SELECT id, name, mail FROM users WHERE name LIKE ? COLLATE NOCASE ORDER BY id LIMIT 100"
 	rows, err := db.QueryContext(ctx, query, "%"+namePattern+"%")
 	if err != nil {
@@ -127,10 +127,10 @@ func (db *DB) SearchUsersByName(ctx context.Context, namePattern string) ([]*mod
 // ListUsers retrieves all users with pagination
 func (db *DB) ListUsers(ctx context.Context, limit, offset int) ([]*models.User, error) {
 	if limit <= 0 {
-		limit = 10 // 默认限制
-	}
+		limit = 10 // Default limit
+}
 	if limit > 100 {
-		limit = 100 // 最大限制
+		limit = 100 // Maximum limit
 	}
 	if offset < 0 {
 		offset = 0

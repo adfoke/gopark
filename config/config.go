@@ -6,25 +6,25 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config 结构体定义了应用的配置项
+// Config defines application configuration
 type Config struct {
 	AppName  string `mapstructure:"appname"` // Use mapstructure tags for Viper
 	Port     int    `mapstructure:"port"`
 	Debug    bool   `mapstructure:"debug"`
 	Redis    string `mapstructure:"redis"`
 	Database struct {
-		Type string `mapstructure:"type"` // 数据库类型: sqlite
-		Path string `mapstructure:"path"` // SQLite数据库文件路径
+		Type string `mapstructure:"type"` // Database type, e.g. sqlite
+		Path string `mapstructure:"path"` // SQLite database file path
 	} `mapstructure:"database"`
 }
 
-// LoadConfig 加载配置文件并返回 Config 结构体
+// LoadConfig reads configuration and returns a Config
 func LoadConfig(path string) (config Config, err error) {
-	viper.SetConfigName("config") // 配置文件名称（不包含扩展名）
-	viper.SetConfigType("yaml")   // 配置文件类型
-	viper.AddConfigPath(path)     // 使用传入的路径
+	viper.SetConfigName("config") // Base name without extension
+	viper.SetConfigType("yaml")   // Config file format
+	viper.AddConfigPath(path)     // Search path
 
-	viper.AutomaticEnv() // 读取环境变量
+	viper.AutomaticEnv()
 
 	err = viper.ReadInConfig()
 	if err != nil {
@@ -36,7 +36,7 @@ func LoadConfig(path string) (config Config, err error) {
 		return Config{}, fmt.Errorf("unable to decode config into struct: %w", err)
 	}
 
-	// 设置默认值
+	// Apply defaults
 	if config.Database.Type == "" {
 		config.Database.Type = "sqlite"
 	}

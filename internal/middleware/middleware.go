@@ -7,30 +7,30 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Logger 中间件记录请求日志
+// Logger records HTTP request metadata
 func Logger(log *logrus.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 开始时间
+		// Capture start time
 		startTime := time.Now()
 
-		// 处理请求
+		// Process request
 		c.Next()
 
-		// 结束时间
+		// Capture end time
 		endTime := time.Now()
-		// 执行时间
+		// Compute latency
 		latencyTime := endTime.Sub(startTime)
 
-		// 请求方式
+		// Request method
 		reqMethod := c.Request.Method
-		// 请求路由
+		// Request URI
 		reqURI := c.Request.RequestURI
-		// 状态码
+		// Status code
 		statusCode := c.Writer.Status()
-		// 请求IP
+		// Client IP
 		clientIP := c.ClientIP()
 
-		// 日志格式
+		// Log structure
 		log.WithFields(logrus.Fields{
 			"status_code":  statusCode,
 			"latency_time": latencyTime,
@@ -41,7 +41,7 @@ func Logger(log *logrus.Logger) gin.HandlerFunc {
 	}
 }
 
-// CORS 中间件处理跨域请求
+// CORS sets permissive cross-origin headers
 func CORS() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -58,11 +58,10 @@ func CORS() gin.HandlerFunc {
 	}
 }
 
-// RequestID 中间件为每个请求添加唯一ID
+// RequestID attaches a unique identifier to each request
 func RequestID() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 使用UUID生成唯一ID
-		// 这里简化处理，实际应使用UUID库
+		// Derive a simple unique ID; consider UUIDs for production use
 		requestID := time.Now().UnixNano()
 		c.Set("RequestID", requestID)
 		c.Writer.Header().Set("X-Request-ID", time.Now().String())

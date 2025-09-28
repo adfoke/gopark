@@ -7,13 +7,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ErrorResponse 定义统一的错误响应格式
+// ErrorResponse defines the common error payload
 type ErrorResponse struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
-// RespondWithError 发送统一格式的错误响应
+// RespondWithError sends a consistent error response
 func RespondWithError(c *gin.Context, statusCode int, message string, log *logrus.Logger) {
 	log.WithFields(logrus.Fields{
 		"status_code": statusCode,
@@ -28,27 +28,27 @@ func RespondWithError(c *gin.Context, statusCode int, message string, log *logru
 	})
 }
 
-// BadRequest 处理400错误
+// BadRequest handles a 400 Bad Request response
 func BadRequest(c *gin.Context, message string, log *logrus.Logger) {
 	RespondWithError(c, http.StatusBadRequest, message, log)
 }
 
-// NotFound 处理404错误
+// NotFound handles a 404 Not Found response
 func NotFound(c *gin.Context, message string, log *logrus.Logger) {
 	RespondWithError(c, http.StatusNotFound, message, log)
 }
 
-// InternalServerError 处理500错误
+// InternalServerError handles a 500 Internal Server Error response
 func InternalServerError(c *gin.Context, message string, log *logrus.Logger) {
 	RespondWithError(c, http.StatusInternalServerError, message, log)
 }
 
-// Unauthorized 处理401错误
+// Unauthorized handles a 401 Unauthorized response
 func Unauthorized(c *gin.Context, message string, log *logrus.Logger) {
 	RespondWithError(c, http.StatusUnauthorized, message, log)
 }
 
-// Forbidden 处理403错误
+// Forbidden handles a 403 Forbidden response
 func Forbidden(c *gin.Context, message string, log *logrus.Logger) {
 	RespondWithError(c, http.StatusForbidden, message, log)
 }

@@ -17,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-// 创建一个模拟的数据库
+// MockDB provides a mocked database implementation
 type MockDB struct {
 	mock.Mock
 }
@@ -32,7 +32,7 @@ func (m *MockDB) GetUserByID(ctx context.Context, id uint) (*models.User, error)
 
 func (m *MockDB) CreateUser(ctx context.Context, user *models.User) error {
 	args := m.Called(ctx, user)
-	// 模拟ID赋值
+	// Simulate ID assignment
 	user.ID = 1
 	return args.Error(0)
 }
@@ -47,40 +47,40 @@ func (m *MockDB) DeleteUser(ctx context.Context, id uint) error {
 	return args.Error(0)
 }
 
-// 测试辅助函数
+// setupTest prepares the gin router, mock DB, and logger
 func setupTest() (*gin.Engine, *MockDB, *logrus.Logger) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	mockDB := new(MockDB)
 	log := logrus.New()
-	log.SetOutput(bytes.NewBuffer(nil)) // 禁止日志输出
+	log.SetOutput(bytes.NewBuffer(nil)) // Disable logging output
 	return r, mockDB, log
 }
 
-// 测试 GetUser
+// TestGetUser exercises the GetUser handler
 func TestGetUser(t *testing.T) {
 	r, mockDB, log := setupTest()
 	handler := &UserHandler{log: log, db: &db.DB{}}
 
-	// 替换handler中的db为mockDB
-	handler.db = &db.DB{} // 这里只是为了类型匹配，实际操作会使用mockDB
+// Replace handler DB with mockDB
+handler.db = &db.DB{} // Placeholder type; mockDB handles interactions
 
-	// 注册路由
+	// Register route
 	r.GET("/user", handler.GetUser)
 
-	// 测试用例1: 成功获取用户
+	// Test case 1: successfully retrieve a user
 	t.Run("Success", func(t *testing.T) {
 		mockUser := &models.User{ID: 1, Name: "Test User", Mail: "test@example.com"}
 		mockDB.On("GetUserByID", mock.Anything, uint(1)).Return(mockUser, nil).Once()
 
-		// 创建请求
+		// Create request
 		req, _ := http.NewRequest("GET", "/user?id=1", nil)
 		w := httptest.NewRecorder()
 
-		// 执行请求
+		// Execute request
 		r.ServeHTTP(w, req)
 
-		// 验证响应
+		// Validate response
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var response models.User
@@ -93,7 +93,7 @@ func TestGetUser(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
-	// 测试用例2: 缺少ID参数
+	// Test case 2: missing ID parameter
 	t.Run("Missing ID", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/user", nil)
 		w := httptest.NewRecorder()
@@ -108,7 +108,7 @@ func TestGetUser(t *testing.T) {
 		assert.Equal(t, "ID parameter is required", response.Message)
 	})
 
-	// 测试用例3: 无效的ID格式
+	// Test case 3: invalid ID format
 	t.Run("Invalid ID Format", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/user?id=invalid", nil)
 		w := httptest.NewRecorder()
@@ -123,7 +123,7 @@ func TestGetUser(t *testing.T) {
 		assert.Equal(t, "Invalid ID format", response.Message)
 	})
 
-	// 测试用例4: 用户不存在
+	// Test case 4: user not found
 	t.Run("User Not Found", func(t *testing.T) {
 		mockDB.On("GetUserByID", mock.Anything, uint(999)).Return(nil, errors.New("user not found")).Once()
 
@@ -143,42 +143,42 @@ func TestGetUser(t *testing.T) {
 	})
 }
 
-// 测试 CreateUser
+// TestCreateUser exercises the CreateUser handler
 func TestCreateUser(t *testing.T) {
 	r, mockDB, log := setupTest()
 	handler := &UserHandler{log: log, db: &db.DB{}}
 
-	// 注册路由
+	// Register route
 	r.POST("/user", handler.CreateUser)
 
-	// 测试用例1: 成功创建用户
+	// Test case 1: successfully create a user
 	t.Run("Success", func(t *testing.T) {
 		mockUser := &models.User{Name: "New User", Mail: "new@example.com"}
 		mockDB.On("CreateUser", mock.Anything, mock.AnythingOfType("*models.User")).Return(nil).Once()
 
-		// 创建请求
+		// Create request
 		userJSON, _ := json.Marshal(mockUser)
 		req, _ := http.NewRequest("POST", "/user", bytes.NewBuffer(userJSON))
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
-		// 执行请求
+		// Execute request
 		r.ServeHTTP(w, req)
 
-		// 验证响应
+		// Validate response
 		assert.Equal(t, http.StatusCreated, w.Code)
 
 		var response models.User
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, uint(1), response.ID) // 模拟函数设置ID为1
+		assert.Equal(t, uint(1), response.ID) // Mock assigns ID 1
 		assert.Equal(t, mockUser.Name, response.Name)
 		assert.Equal(t, mockUser.Mail, response.Mail)
 
 		mockDB.AssertExpectations(t)
 	})
 
-	// 测试用例2: 无效的请求体
+	// Test case 2: invalid request body
 	t.Run("Invalid Request Body", func(t *testing.T) {
 		req, _ := http.NewRequest("POST", "/user", bytes.NewBuffer([]byte("invalid json")))
 		req.Header.Set("Content-Type", "application/json")
@@ -194,7 +194,7 @@ func TestCreateUser(t *testing.T) {
 		assert.Equal(t, "Invalid request payload", response.Message)
 	})
 
-	// 测试用例3: 缺少必填字段
+	// Test case 3: missing required fields
 	t.Run("Missing Required Fields", func(t *testing.T) {
 		mockUser := &models.User{Name: "", Mail: ""}
 
@@ -213,7 +213,7 @@ func TestCreateUser(t *testing.T) {
 		assert.Equal(t, "Name is required", response.Message)
 	})
 
-	// 测试用例4: 数据库错误
+	// Test case 4: database error
 	t.Run("Database Error", func(t *testing.T) {
 		mockUser := &models.User{Name: "Error User", Mail: "error@example.com"}
 		mockDB.On("CreateUser", mock.Anything, mock.AnythingOfType("*models.User")).Return(errors.New("database error")).Once()
@@ -236,29 +236,29 @@ func TestCreateUser(t *testing.T) {
 	})
 }
 
-// 测试 UpdateUser
+// TestUpdateUser exercises the UpdateUser handler
 func TestUpdateUser(t *testing.T) {
 	r, mockDB, log := setupTest()
 	handler := &UserHandler{log: log, db: &db.DB{}}
 
-	// 注册路由
+	// Register route
 	r.PUT("/user/:id", handler.UpdateUser)
 
-	// 测试用例1: 成功更新用户
+	// Test case 1: successfully update a user
 	t.Run("Success", func(t *testing.T) {
 		mockUser := &models.User{ID: 1, Name: "Updated User", Mail: "updated@example.com"}
 		mockDB.On("UpdateUser", mock.Anything, mock.AnythingOfType("*models.User")).Return(nil).Once()
 
-		// 创建请求
+		// Create request
 		userJSON, _ := json.Marshal(mockUser)
 		req, _ := http.NewRequest("PUT", "/user/1", bytes.NewBuffer(userJSON))
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
-		// 执行请求
+		// Execute request
 		r.ServeHTTP(w, req)
 
-		// 验证响应
+		// Validate response
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var response models.User
@@ -271,7 +271,7 @@ func TestUpdateUser(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
-	// 测试用例2: 无效的ID格式
+	// Test case 2: invalid ID format
 	t.Run("Invalid ID Format", func(t *testing.T) {
 		req, _ := http.NewRequest("PUT", "/user/invalid", bytes.NewBuffer([]byte(`{"name":"Test","mail":"test@example.com"}`)))
 		req.Header.Set("Content-Type", "application/json")
@@ -287,7 +287,7 @@ func TestUpdateUser(t *testing.T) {
 		assert.Equal(t, "Invalid ID format", response.Message)
 	})
 
-	// 测试用例3: 无效的请求体
+	// Test case 3: invalid request body
 	t.Run("Invalid Request Body", func(t *testing.T) {
 		req, _ := http.NewRequest("PUT", "/user/1", bytes.NewBuffer([]byte("invalid json")))
 		req.Header.Set("Content-Type", "application/json")
@@ -303,7 +303,7 @@ func TestUpdateUser(t *testing.T) {
 		assert.Equal(t, "Invalid request payload", response.Message)
 	})
 
-	// 测试用例4: 缺少必填字段
+	// Test case 4: missing required fields
 	t.Run("Missing Required Fields", func(t *testing.T) {
 		mockUser := &models.User{ID: 1, Name: "", Mail: ""}
 
@@ -322,7 +322,7 @@ func TestUpdateUser(t *testing.T) {
 		assert.Equal(t, "Name is required", response.Message)
 	})
 
-	// 测试用例5: 数据库错误
+	// Test case 5: database error
 	t.Run("Database Error", func(t *testing.T) {
 		mockUser := &models.User{ID: 1, Name: "Error User", Mail: "error@example.com"}
 		mockDB.On("UpdateUser", mock.Anything, mock.AnythingOfType("*models.User")).Return(errors.New("database error")).Once()
@@ -345,26 +345,26 @@ func TestUpdateUser(t *testing.T) {
 	})
 }
 
-// 测试 DeleteUser
+// TestDeleteUser exercises the DeleteUser handler
 func TestDeleteUser(t *testing.T) {
 	r, mockDB, log := setupTest()
 	handler := &UserHandler{log: log, db: &db.DB{}}
 
-	// 注册路由
+	// Register route
 	r.DELETE("/user/:id", handler.DeleteUser)
 
-	// 测试用例1: 成功删除用户
+	// Test case 1: successfully delete a user
 	t.Run("Success", func(t *testing.T) {
 		mockDB.On("DeleteUser", mock.Anything, uint(1)).Return(nil).Once()
 
-		// 创建请求
+		// Create request
 		req, _ := http.NewRequest("DELETE", "/user/1", nil)
 		w := httptest.NewRecorder()
 
-		// 执行请求
+		// Execute request
 		r.ServeHTTP(w, req)
 
-		// 验证响应
+		// Validate response
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var response map[string]string
@@ -375,7 +375,7 @@ func TestDeleteUser(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
-	// 测试用例2: 无效的ID格式
+	// Test case 2: invalid ID format
 	t.Run("Invalid ID Format", func(t *testing.T) {
 		req, _ := http.NewRequest("DELETE", "/user/invalid", nil)
 		w := httptest.NewRecorder()
@@ -390,7 +390,7 @@ func TestDeleteUser(t *testing.T) {
 		assert.Equal(t, "Invalid ID format", response.Message)
 	})
 
-	// 测试用例3: 数据库错误
+	// Test case 3: database error
 	t.Run("Database Error", func(t *testing.T) {
 		mockDB.On("DeleteUser", mock.Anything, uint(999)).Return(errors.New("database error")).Once()
 

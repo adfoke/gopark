@@ -6,16 +6,16 @@ import (
 	"strings"
 )
 
-// User 定义了用户的数据结构
+// User represents the user domain model
 type User struct {
 	ID   uint   `json:"id"`
 	Name string `json:"name"`
 	Mail string `json:"mail"`
 }
 
-// Validate 验证用户数据是否有效
+// Validate checks whether the user data is valid
 func (u *User) Validate() error {
-	// 验证名称
+	// Validate name
 	if strings.TrimSpace(u.Name) == "" {
 		return errors.New("name is required")
 	}
@@ -24,12 +24,12 @@ func (u *User) Validate() error {
 		return errors.New("name is too long (maximum 255 characters)")
 	}
 
-	// 验证邮箱
+	// Validate email
 	if strings.TrimSpace(u.Mail) == "" {
 		return errors.New("email is required")
 	}
 
-	// 简单的邮箱格式验证
+	// Perform a basic email format check
 	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 	if !emailRegex.MatchString(u.Mail) {
 		return errors.New("invalid email format")

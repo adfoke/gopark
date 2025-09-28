@@ -23,12 +23,12 @@ func NewUserHandler(log *logrus.Logger, db *db.DB) *UserHandler {
 }
 
 // GetUser handles GET requests to retrieve user information
-// @Summary      获取用户信息
-// @Description  根据用户ID获取用户详细信息
+// @Summary      Get user information
+// @Description  Retrieve detailed user information by ID
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        id    query     string  true  "用户ID"
+// @Param        id    query     string  true  "User ID"
 // @Success      200  {object}  models.User
 // @Failure      400  {object}  handlers.ErrorResponse
 // @Failure      404  {object}  handlers.ErrorResponse
@@ -60,12 +60,12 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 }
 
 // CreateUser handles POST requests to create a new user
-// @Summary      创建新用户
-// @Description  创建一个新的用户记录
+// @Summary      Create a new user
+// @Description  Create a new user record
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        user  body      models.User  true  "用户信息"
+// @Param        user  body      models.User  true  "User information"
 // @Success      201   {object}  models.User
 // @Failure      400   {object}  handlers.ErrorResponse
 // @Failure      500   {object}  handlers.ErrorResponse
@@ -79,7 +79,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// 验证用户数据
+	// Validate user data
 	if err := user.Validate(); err != nil {
 		BadRequest(c, err.Error(), h.log)
 		return
@@ -95,13 +95,13 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 }
 
 // UpdateUser handles PUT requests to update an existing user
-// @Summary      更新用户信息
-// @Description  根据用户ID更新用户信息
+// @Summary      Update user information
+// @Description  Update user data by ID
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        id    path      int     true  "用户ID"
-// @Param        user  body      models.User  true  "用户信息"
+// @Param        id    path      int     true  "User ID"
+// @Param        user  body      models.User  true  "User information"
 // @Success      200   {object}  models.User
 // @Failure      400   {object}  handlers.ErrorResponse
 // @Failure      500   {object}  handlers.ErrorResponse
@@ -123,7 +123,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// 验证用户数据
+	// Validate user data
 	if err := user.Validate(); err != nil {
 		BadRequest(c, err.Error(), h.log)
 		return
@@ -140,12 +140,12 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 }
 
 // DeleteUser handles DELETE requests to delete a user
-// @Summary      删除用户
-// @Description  根据用户ID删除用户
+// @Summary      Delete a user
+// @Description  Delete a user by ID
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        id   path      int  true  "用户ID"
+// @Param        id   path      int  true  "User ID"
 // @Success      200  {object}  map[string]string
 // @Failure      400  {object}  handlers.ErrorResponse
 // @Failure      500  {object}  handlers.ErrorResponse
@@ -170,12 +170,12 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 }
 
 // SearchUsers handles GET requests to search users by name
-// @Summary      搜索用户
-// @Description  根据名称搜索用户
+// @Summary      Search users
+// @Description  Search for users by name
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        name    query     string  true  "用户名称搜索模式"
+// @Param        name    query     string  true  "User name search pattern"
 // @Success      200  {array}   models.User
 // @Failure      400  {object}  handlers.ErrorResponse
 // @Failure      500  {object}  handlers.ErrorResponse
@@ -199,13 +199,13 @@ func (h *UserHandler) SearchUsers(c *gin.Context) {
 }
 
 // ListUsers handles GET requests to list all users with pagination
-// @Summary      列出用户
-// @Description  分页列出所有用户
+// @Summary      List users
+// @Description  List all users with pagination
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        limit    query     int  false  "每页数量限制"
-// @Param        offset   query     int  false  "偏移量"
+// @Param        limit    query     int  false  "Items per page"
+// @Param        offset   query     int  false  "Result offset"
 // @Success      200  {array}   models.User
 // @Failure      400  {object}  handlers.ErrorResponse
 // @Failure      500  {object}  handlers.ErrorResponse
@@ -213,7 +213,7 @@ func (h *UserHandler) SearchUsers(c *gin.Context) {
 func (h *UserHandler) ListUsers(c *gin.Context) {
 	h.log.Info("Handling ListUsers request")
 
-	// 解析分页参数
+	// Parse pagination parameters
 	limitStr := c.DefaultQuery("limit", "10")
 	offsetStr := c.DefaultQuery("offset", "0")
 

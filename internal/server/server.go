@@ -13,13 +13,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Server 结构体封装了 HTTP 服务器及其依赖
+// Server encapsulates the HTTP server and its dependencies
 type Server struct {
 	httpServer *http.Server
 	log        *logrus.Logger
 }
 
-// NewServer 创建一个新的 Server 实例
+// NewServer creates a new Server instance
 func NewServer(router *gin.Engine, port int, log *logrus.Logger) *Server {
 	addr := fmt.Sprintf(":%d", port)
 
@@ -38,9 +38,9 @@ func NewServer(router *gin.Engine, port int, log *logrus.Logger) *Server {
 	}
 }
 
-// Run 启动 HTTP 服务器并支持优雅关闭
+// Run starts the HTTP server and supports graceful shutdown
 func (s *Server) Run() error {
-	// 在单独的 goroutine 中启动服务器
+	// Start the server in a dedicated goroutine
 	go func() {
 		s.log.Infof("HTTP server listening on %s", s.httpServer.Addr)
 		if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -48,16 +48,16 @@ func (s *Server) Run() error {
 		}
 	}()
 
-	// 等待中断信号以优雅地关闭服务器
+	// Wait for interrupt signals to shut down gracefully
 	quit := make(chan os.Signal, 1)
-	// kill (无参数) 默认发送 syscall.SIGTERM
-	// kill -2 发送 syscall.SIGINT
-	// kill -9 发送 syscall.SIGKILL，但无法被捕获，所以不需要添加
+	// kill (no args) sends syscall.SIGTERM
+	// kill -2 sends syscall.SIGINT
+	// kill -9 sends syscall.SIGKILL, which cannot be caught
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	s.log.Info("Shutting down server...")
 
-	// 设置 5 秒的超时时间来关闭服务器
+	// Allow up to 5 seconds to complete shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := s.Shutdown(ctx); err != nil {
@@ -68,7 +68,7 @@ func (s *Server) Run() error {
 	return nil
 }
 
-// Shutdown 优雅地关闭服务器
+// Shutdown stops the server gracefully
 func (s *Server) Shutdown(ctx context.Context) error {
 	s.log.Info("Shutting down server...")
 	return s.httpServer.Shutdown(ctx)
